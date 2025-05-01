@@ -1,0 +1,10 @@
+
+User-agent: *
+Allow: /
+
+# Disallow admin and checkout pages for privacy
+Disallow: /admin/
+Disallow: /checkout/
+
+# Sitemaps
+Sitemap: https://boutique.com/sitemap.xml
