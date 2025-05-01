@@ -5,9 +5,33 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Mail, Phone, MapPin, Clock } from "lucide-react";
+import { Mail, Phone, MapPin, Clock, Calendar } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
 
 interface ContactInfo {
   phone: string;
@@ -38,6 +62,33 @@ const Contact: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [contactInfo, setContactInfo] = useState<ContactInfo | null>(null);
+  const [date, setDate] = useState<Date | undefined>(undefined);
+  const [timeSlot, setTimeSlot] = useState<string | undefined>(undefined);
+  const [appointmentType, setAppointmentType] = useState<string | undefined>(
+    undefined
+  );
+  const [appointmentFormOpen, setAppointmentFormOpen] = useState(false);
+
+  // Available time slots
+  const timeSlots = [
+    "10:00 AM",
+    "11:00 AM",
+    "12:00 PM",
+    "1:00 PM",
+    "2:00 PM",
+    "3:00 PM",
+    "4:00 PM",
+    "5:00 PM",
+  ];
+
+  // Appointment types
+  const appointmentTypes = [
+    "Style Consultation",
+    "Custom Fitting",
+    "Personal Shopping",
+    "Bridal Consultation",
+    "Accessory Styling",
+  ];
 
   // Simulate API fetch for dynamic content
   useEffect(() => {
@@ -104,6 +155,48 @@ const Contact: React.FC = () => {
         title: "Error",
         description:
           "There was a problem sending your message. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleBookAppointment = async () => {
+    if (!date || !timeSlot || !appointmentType) {
+      toast({
+        title: "Incomplete Information",
+        description: "Please select a date, time, and appointment type.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    // Simulate API call
+    try {
+      // Simulate network delay
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      toast({
+        title: "Appointment Requested",
+        description: `Your ${appointmentType} appointment for ${format(
+          date,
+          "PPP"
+        )} at ${timeSlot} has been requested. We'll confirm shortly!`,
+      });
+
+      // Reset form
+      setDate(undefined);
+      setTimeSlot(undefined);
+      setAppointmentType(undefined);
+      setAppointmentFormOpen(false);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description:
+          "There was a problem booking your appointment. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -184,6 +277,115 @@ const Contact: React.FC = () => {
                 </p>
               </>
             )}
+          </div>
+        </div>
+
+        {/* Book Appointment Section */}
+        <div className="mb-16 p-8 bg-boutique-50 rounded-lg">
+          <div className="max-w-3xl mx-auto text-center">
+            <div className="mb-6 flex justify-center">
+              <div className="p-3 rounded-full bg-white">
+                <Calendar className="h-8 w-8 text-boutique-600" />
+              </div>
+            </div>
+            <h2 className="text-2xl font-bold mb-3">Book an Appointment</h2>
+            <p className="text-gray-600 mb-6">
+              Schedule a personalized appointment with our fashion consultants
+              for a unique shopping experience.
+            </p>
+            <Dialog
+              open={appointmentFormOpen}
+              onOpenChange={setAppointmentFormOpen}
+            >
+              <DialogTrigger asChild>
+                <Button className="bg-boutique-600 hover:bg-boutique-700">
+                  Book Appointment
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Book your appointment</DialogTitle>
+                  <DialogDescription>
+                    Select your preferred date, time and type of appointment.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="appointment-type">Appointment Type</Label>
+                    <Select
+                      value={appointmentType}
+                      onValueChange={setAppointmentType}
+                    >
+                      <SelectTrigger id="appointment-type">
+                        <SelectValue placeholder="Select appointment type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {appointmentTypes.map((type) => (
+                          <SelectItem key={type} value={type}>
+                            {type}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Select Date</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-full justify-start text-left font-normal",
+                            !date && "text-muted-foreground"
+                          )}
+                        >
+                          {date ? format(date, "PPP") : "Pick a date"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0">
+                        <CalendarComponent
+                          mode="single"
+                          selected={date}
+                          onSelect={setDate}
+                          initialFocus
+                          disabled={
+                            (date) =>
+                              date <
+                                new Date(new Date().setHours(0, 0, 0, 0)) ||
+                              date.getDay() === 0 // Disable Sundays
+                          }
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="time-slot">Select Time</Label>
+                    <Select value={timeSlot} onValueChange={setTimeSlot}>
+                      <SelectTrigger id="time-slot">
+                        <SelectValue placeholder="Select time slot" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {timeSlots.map((slot) => (
+                          <SelectItem key={slot} value={slot}>
+                            {slot}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button
+                    type="submit"
+                    className="bg-boutique-600 hover:bg-boutique-700"
+                    onClick={handleBookAppointment}
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? "Booking..." : "Book Appointment"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
 

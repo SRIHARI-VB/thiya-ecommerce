@@ -17,6 +17,7 @@ This document outlines the necessary backend APIs, data structures, and integrat
 ### Authentication
 
 #### Register User
+
 - **Endpoint**: `POST /api/auth/register`
 - **Payload**:
   ```json
@@ -45,6 +46,7 @@ This document outlines the necessary backend APIs, data structures, and integrat
   - `409`: Email already exists
 
 #### Login
+
 - **Endpoint**: `POST /api/auth/login`
 - **Payload**:
   ```json
@@ -70,6 +72,7 @@ This document outlines the necessary backend APIs, data structures, and integrat
   - `404`: User not found
 
 #### Refresh Token
+
 - **Endpoint**: `POST /api/auth/refresh`
 - **Payload**:
   ```json
@@ -88,6 +91,7 @@ This document outlines the necessary backend APIs, data structures, and integrat
   - `401`: Invalid refresh token
 
 #### Logout
+
 - **Endpoint**: `POST /api/auth/logout`
 - **Headers**: `Authorization: Bearer {token}`
 - **Response (204)**: No content
@@ -95,6 +99,7 @@ This document outlines the necessary backend APIs, data structures, and integrat
 ### Products
 
 #### Get All Products
+
 - **Endpoint**: `GET /api/products`
 - **Query Parameters**:
   - `page`: Page number (default: 1)
@@ -140,6 +145,7 @@ This document outlines the necessary backend APIs, data structures, and integrat
   ```
 
 #### Search Products with Autocomplete
+
 - **Endpoint**: `GET /api/products/search`
 - **Query Parameters**:
   - `q`: Search query
@@ -161,6 +167,7 @@ This document outlines the necessary backend APIs, data structures, and integrat
   ```
 
 #### Get Product by ID
+
 - **Endpoint**: `GET /api/products/{id}`
 - **Response (200)**:
   ```json
@@ -197,6 +204,7 @@ This document outlines the necessary backend APIs, data structures, and integrat
   - `404`: Product not found
 
 #### Get Categories
+
 - **Endpoint**: `GET /api/categories`
 - **Response (200)**:
   ```json
@@ -215,6 +223,7 @@ This document outlines the necessary backend APIs, data structures, and integrat
 ### Shopping Cart
 
 #### Get User Cart
+
 - **Endpoint**: `GET /api/cart`
 - **Headers**: `Authorization: Bearer {token}`
 - **Response (200)**:
@@ -242,6 +251,7 @@ This document outlines the necessary backend APIs, data structures, and integrat
   ```
 
 #### Add Item to Cart
+
 - **Endpoint**: `POST /api/cart/items`
 - **Headers**: `Authorization: Bearer {token}`
 - **Payload**:
@@ -258,7 +268,9 @@ This document outlines the necessary backend APIs, data structures, and integrat
   {
     "message": "Item added to cart",
     "cartItems": 3,
-    "cart": { /* Full cart object as shown above */ }
+    "cart": {
+      /* Full cart object as shown above */
+    }
   }
   ```
 - **Error Responses**:
@@ -266,6 +278,7 @@ This document outlines the necessary backend APIs, data structures, and integrat
   - `400`: Insufficient stock
 
 #### Update Cart Item
+
 - **Endpoint**: `PUT /api/cart/items/{itemId}`
 - **Headers**: `Authorization: Bearer {token}`
 - **Payload**:
@@ -280,24 +293,30 @@ This document outlines the necessary backend APIs, data structures, and integrat
   ```json
   {
     "message": "Cart updated",
-    "cart": { /* Full cart object */ }
+    "cart": {
+      /* Full cart object */
+    }
   }
   ```
 
 #### Remove Cart Item
+
 - **Endpoint**: `DELETE /api/cart/items/{itemId}`
 - **Headers**: `Authorization: Bearer {token}`
 - **Response (200)**:
   ```json
   {
     "message": "Item removed",
-    "cart": { /* Full cart object */ }
+    "cart": {
+      /* Full cart object */
+    }
   }
   ```
 
 ### Checkout & Orders
 
 #### Create Order
+
 - **Endpoint**: `POST /api/orders`
 - **Headers**: `Authorization: Bearer {token}`
 - **Payload**:
@@ -322,7 +341,7 @@ This document outlines the necessary backend APIs, data structures, and integrat
     "paymentDetails": {
       "provider": "razorpay",
       "orderId": "razorpay-order-id",
-      "amount": 9296,  // in smallest currency unit (paise)
+      "amount": 9296, // in smallest currency unit (paise)
       "currency": "INR",
       "keyId": "razorpay_key_id"
     },
@@ -337,6 +356,7 @@ This document outlines the necessary backend APIs, data structures, and integrat
   ```
 
 #### Confirm Payment
+
 - **Endpoint**: `POST /api/orders/{orderId}/payment`
 - **Headers**: `Authorization: Bearer {token}`
 - **Payload**:
@@ -357,6 +377,7 @@ This document outlines the necessary backend APIs, data structures, and integrat
   ```
 
 #### Get User Orders
+
 - **Endpoint**: `GET /api/orders`
 - **Headers**: `Authorization: Bearer {token}`
 - **Query Parameters**:
@@ -385,6 +406,7 @@ This document outlines the necessary backend APIs, data structures, and integrat
   ```
 
 #### Get Order Details
+
 - **Endpoint**: `GET /api/orders/{orderId}`
 - **Headers**: `Authorization: Bearer {token}`
 - **Response (200)**:
@@ -427,6 +449,7 @@ This document outlines the necessary backend APIs, data structures, and integrat
 ### User Profile
 
 #### Get User Profile
+
 - **Endpoint**: `GET /api/user/profile`
 - **Headers**: `Authorization: Bearer {token}`
 - **Response (200)**:
@@ -461,6 +484,7 @@ This document outlines the necessary backend APIs, data structures, and integrat
   ```
 
 #### Update User Profile
+
 - **Endpoint**: `PUT /api/user/profile`
 - **Headers**: `Authorization: Bearer {token}`
 - **Payload**:
@@ -484,6 +508,7 @@ This document outlines the necessary backend APIs, data structures, and integrat
   ```
 
 #### Change Password
+
 - **Endpoint**: `PUT /api/user/password`
 - **Headers**: `Authorization: Bearer {token}`
 - **Payload**:
@@ -507,6 +532,7 @@ This document outlines the necessary backend APIs, data structures, and integrat
 ### User Addresses
 
 #### Get User Addresses
+
 - **Endpoint**: `GET /api/user/addresses`
 - **Headers**: `Authorization: Bearer {token}`
 - **Response (200)**:
@@ -529,6 +555,7 @@ This document outlines the necessary backend APIs, data structures, and integrat
   ```
 
 #### Add Address
+
 - **Endpoint**: `POST /api/user/addresses`
 - **Headers**: `Authorization: Bearer {token}`
 - **Payload**:
@@ -563,6 +590,7 @@ This document outlines the necessary backend APIs, data structures, and integrat
   ```
 
 #### Update Address
+
 - **Endpoint**: `PUT /api/user/addresses/{addressId}`
 - **Headers**: `Authorization: Bearer {token}`
 - **Payload**: (Same as Add Address)
@@ -585,6 +613,7 @@ This document outlines the necessary backend APIs, data structures, and integrat
   ```
 
 #### Delete Address
+
 - **Endpoint**: `DELETE /api/user/addresses/{addressId}`
 - **Headers**: `Authorization: Bearer {token}`
 - **Response (200)**:
@@ -597,7 +626,8 @@ This document outlines the necessary backend APIs, data structures, and integrat
 ### Wishlist
 
 #### Get Wishlist
-- **Endpoint**: `GET /api/wishlist`
+
+- **Endpoint**: `GET /api/favorites`
 - **Headers**: `Authorization: Bearer {token}`
 - **Response (200)**:
   ```json
@@ -607,16 +637,47 @@ This document outlines the necessary backend APIs, data structures, and integrat
         "productId": "product-uuid",
         "name": "Product Name",
         "price": 39.99,
-        "image": "product-image-url",
+        "images": ["image-url1", "image-url2"],
         "stock": 10,
-        "discount": 20
+        "discount": 20,
+        "category": "category-slug",
+        "addedAt": "2023-04-30T12:00:00Z"
       }
-    ]
+    ],
+    "pagination": {
+      "total": 15,
+      "pages": 2,
+      "currentPage": 1,
+      "hasNext": true,
+      "hasPrev": false
+    }
   }
   ```
 
-#### Add to Wishlist
-- **Endpoint**: `POST /api/wishlist`
+#### Check if Products are in Favorites
+
+- **Endpoint**: `POST /api/favorites/check`
+- **Headers**: `Authorization: Bearer {token}`
+- **Payload**:
+  ```json
+  {
+    "productIds": ["product-uuid1", "product-uuid2", "product-uuid3"]
+  }
+  ```
+- **Response (200)**:
+  ```json
+  {
+    "favorites": {
+      "product-uuid1": true,
+      "product-uuid2": false,
+      "product-uuid3": true
+    }
+  }
+  ```
+
+#### Add to Favorites
+
+- **Endpoint**: `POST /api/favorites`
 - **Headers**: `Authorization: Bearer {token}`
 - **Payload**:
   ```json
@@ -627,23 +688,37 @@ This document outlines the necessary backend APIs, data structures, and integrat
 - **Response (200)**:
   ```json
   {
-    "message": "Product added to wishlist"
+    "message": "Product added to favorites",
+    "status": "added",
+    "product": {
+      "productId": "product-uuid",
+      "name": "Product Name"
+    }
   }
   ```
+- **Error Responses**:
+  - `401`: Unauthorized (user not logged in)
+  - `404`: Product not found
 
-#### Remove from Wishlist
-- **Endpoint**: `DELETE /api/wishlist/{productId}`
+#### Remove from Favorites
+
+- **Endpoint**: `DELETE /api/favorites/{productId}`
 - **Headers**: `Authorization: Bearer {token}`
 - **Response (200)**:
   ```json
   {
-    "message": "Product removed from wishlist"
+    "message": "Product removed from favorites",
+    "status": "removed"
   }
   ```
+- **Error Responses**:
+  - `401`: Unauthorized (user not logged in)
+  - `404`: Product not found in favorites
 
 ### Contact Form
 
 #### Submit Contact Form
+
 - **Endpoint**: `POST /api/contact`
 - **Payload**:
   ```json
@@ -755,6 +830,8 @@ Use structured logging format compatible with log aggregation tools.
 - Use secure HTTP headers
 - Store passwords with strong hashing (bcrypt/Argon2)
 - Implement request throttling for sensitive operations
+- **Enforce authentication for personalized features** (favorites, cart, orders)
+- Implement proper role-based access control for admin operations
 
 ## Deployment Recommendations
 

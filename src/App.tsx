@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { CartProvider } from "./context/CartContext";
 import { AuthProvider } from "./context/AuthContext";
+import { FavoritesProvider } from "./context/FavoritesContext";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Shop from "./pages/Shop";
@@ -22,6 +23,7 @@ import Account from "./pages/Account";
 import OrderDetail from "./pages/OrderDetail";
 import Orders from "./pages/Orders";
 import Contact from "./pages/Contact";
+import FavoritesPage from "./pages/FavoritesPage";
 
 // Create a client
 const queryClient = new QueryClient();
@@ -31,31 +33,34 @@ const App = () => {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <CartProvider>
-          <TooltipProvider>
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/shop" element={<Shop />} />
-                <Route path="/product/:id" element={<ProductDetail />} />
-                <Route path="/cart" element={<Cart />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/checkout" element={<Checkout />} />
-                <Route path="/order-success" element={<OrderSuccess />} />
-                <Route path="/categories" element={<Categories />} />
-                <Route path="/categories/:slug" element={<CategoryPage />} />
-                <Route path="/search" element={<SearchResults />} />
-                <Route path="/account" element={<Account />} />
-                <Route path="/orders" element={<Orders />} />
-                <Route path="/order/:orderId" element={<OrderDetail />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/contact" element={<Contact />} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-            <Toaster />
-            <Sonner />
-          </TooltipProvider>
+          <FavoritesProvider>
+            <TooltipProvider>
+              <BrowserRouter>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/shop" element={<Shop />} />
+                  <Route path="/product/:id" element={<ProductDetail />} />
+                  <Route path="/cart" element={<Cart />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/checkout" element={<Checkout />} />
+                  <Route path="/order-success" element={<OrderSuccess />} />
+                  <Route path="/categories" element={<Categories />} />
+                  <Route path="/categories/:slug" element={<CategoryPage />} />
+                  <Route path="/search" element={<SearchResults />} />
+                  <Route path="/account" element={<Account />} />
+                  <Route path="/orders" element={<Orders />} />
+                  <Route path="/order/:orderId" element={<OrderDetail />} />
+                  <Route path="/about" element={<About />} />
+                  <Route path="/contact" element={<Contact />} />
+                  <Route path="/favorites" element={<FavoritesPage />} />
+                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </BrowserRouter>
+              <Toaster />
+              <Sonner />
+            </TooltipProvider>
+          </FavoritesProvider>
         </CartProvider>
       </AuthProvider>
     </QueryClientProvider>

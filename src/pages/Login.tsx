@@ -1,5 +1,10 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import {
+  Link,
+  useNavigate,
+  useLocation,
+  useSearchParams,
+} from "react-router-dom";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -46,20 +51,27 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const { login, register: registerUser, isAuthenticated } = useAuth();
   const [activeTab, setActiveTab] = useState<string>("login");
 
+  // Get redirect path from location state or search params
+  const redirectPath =
+    location.state?.from ||
+    (searchParams.get("redirect") ? `/${searchParams.get("redirect")}` : "/");
+
   // Redirect if already logged in
-  React.useEffect(() => {
+  useEffect(() => {
     if (isAuthenticated) {
-      navigate("/");
+      navigate(redirectPath);
       toast({
         title: "Already logged in",
         description: "You're already logged in to your account",
       });
     }
-  }, [isAuthenticated, navigate, toast]);
+  }, [isAuthenticated, navigate, toast, redirectPath]);
 
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -82,18 +94,36 @@ const Login = () => {
   const onLoginSubmit = async (data: LoginFormValues) => {
     try {
       await login(data.email, data.password);
-      navigate("/");
+      toast({
+        title: "Login Successful",
+        description: "Welcome back to Thiya's Boutique!",
+      });
+      navigate(redirectPath);
     } catch (error) {
       console.error("Login error", error);
+      toast({
+        title: "Login Failed",
+        description: "Invalid email or password. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
   const onRegisterSubmit = async (data: RegisterFormValues) => {
     try {
       await registerUser(data.name, data.email, data.password);
-      navigate("/");
+      toast({
+        title: "Registration Successful",
+        description: "Your account has been created successfully!",
+      });
+      navigate(redirectPath);
     } catch (error) {
       console.error("Registration error", error);
+      toast({
+        title: "Registration Failed",
+        description: "An error occurred during registration. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 

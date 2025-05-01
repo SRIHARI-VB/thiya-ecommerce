@@ -105,7 +105,7 @@ const About: React.FC = () => {
         <div className="text-center mb-16">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">About Thiya's Boutique</h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Crafting premium fashion experiences since 2015. Discover our story
+            Crafting premium fashion experiences since 2025. Discover our story
             of passion, craftsmanship, and commitment to sustainable luxury.
           </p>
         </div>

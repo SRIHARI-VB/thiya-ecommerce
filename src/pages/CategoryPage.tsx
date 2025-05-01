@@ -3,11 +3,18 @@ import { useParams } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import ProductGrid from "@/components/products/ProductGrid";
 import { getProductsByCategory, categories } from "@/data/products";
+import { useFavorites } from "@/context/FavoritesContext";
+import ProductCard from "@/components/products/ProductCard";
 
 const CategoryPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const category = categories.find((c) => c.slug === slug);
   const products = getProductsByCategory(category?.name || "");
+  const { isFavorite, toggleFavorite } = useFavorites();
+
+  const handleToggleFavorite = (productId: string) => {
+    toggleFavorite(productId);
+  };
 
   if (!category) {
     return (
@@ -48,7 +55,16 @@ const CategoryPage = () => {
             <h2 className="text-xl font-semibold mb-8">
               All {category.name} Products
             </h2>
-            <ProductGrid products={products} />
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {products.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  isFavorite={isFavorite(product.id)}
+                  onToggleFavorite={handleToggleFavorite}
+                />
+              ))}
+            </div>
           </>
         ) : (
           <div className="text-center py-12">

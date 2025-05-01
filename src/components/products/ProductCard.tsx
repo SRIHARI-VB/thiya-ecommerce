@@ -1,24 +1,46 @@
-
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Product } from '@/types';
-import { Badge } from '@/components/ui/badge';
-import { Heart } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import { Product } from "@/types";
+import { Badge } from "@/components/ui/badge";
+import { Heart } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useAuth } from "@/context/AuthContext";
 
 interface ProductCardProps {
   product: Product;
+  onToggleFavorite?: (productId: string) => void;
+  isFavorite?: boolean;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
+const ProductCard: React.FC<ProductCardProps> = ({
+  product,
+  onToggleFavorite,
+  isFavorite = false,
+}) => {
   const { id, name, price, images, discount, new: isNew, bestSeller } = product;
   const [imageLoaded, setImageLoaded] = useState(false);
-  
+  const { isAuthenticated } = useAuth();
+
   const discountedPrice = discount ? price * (1 - discount / 100) : price;
-  
+
+  const handleFavoriteClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!isAuthenticated) {
+      // Redirect to login or show login prompt
+      window.location.href = "/login?redirect=favorites";
+      return;
+    }
+
+    if (onToggleFavorite) {
+      onToggleFavorite(id);
+    }
+  };
+
   return (
-    <div className="group product-card relative">
-      <div className="aspect-square overflow-hidden rounded-lg bg-gray-100 mb-4">
+    <div className="group product-card relative h-[450px] flex flex-col">
+      <div className="aspect-[3/4] overflow-hidden rounded-lg bg-gray-100 mb-4 relative flex-grow">
         <Link to={`/product/${id}`} aria-label={`View details for ${name}`}>
           {/* Primary image with lazy loading */}
           <img
@@ -26,7 +48,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             alt={name}
             loading="lazy"
             width="400"
-            height="400"
+            height="600"
             onLoad={() => setImageLoaded(true)}
             className={cn(
               "h-full w-full object-cover object-center product-image",
@@ -46,42 +68,53 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
               alt={`Alternative view of ${name}`}
               loading="lazy"
               width="400"
-              height="400"
+              height="600"
               className="absolute top-0 left-0 h-full w-full object-cover object-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
             />
           )}
         </Link>
-        <div className="absolute top-2 right-2">
-          <button 
-            className="p-1 rounded-full bg-white shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
-            aria-label="Add to wishlist"
-          >
-            <Heart className="h-5 w-5 text-gray-600 hover:text-red-500 transition-colors" />
-          </button>
-        </div>
+        <button
+          className={cn(
+            "absolute top-2 right-2 p-2 rounded-full bg-white shadow-sm transition-colors",
+            isFavorite ? "text-red-500" : "text-gray-500 hover:text-red-500"
+          )}
+          aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+          onClick={handleFavoriteClick}
+        >
+          <Heart
+            className={cn(
+              "h-5 w-5 transition-colors",
+              isFavorite ? "fill-current" : ""
+            )}
+          />
+        </button>
         {(isNew || bestSeller || discount) && (
           <div className="absolute top-2 left-2 flex flex-col gap-2">
             {isNew && (
-              <Badge variant="secondary" className="bg-boutique-300 text-white hover:bg-boutique-300">
+              <Badge
+                variant="secondary"
+                className="bg-boutique-300 text-white hover:bg-boutique-300"
+              >
                 New
               </Badge>
             )}
             {bestSeller && (
-              <Badge variant="secondary" className="bg-boutique-500 text-white hover:bg-boutique-500">
+              <Badge
+                variant="secondary"
+                className="bg-boutique-500 text-white hover:bg-boutique-500"
+              >
                 Best Seller
               </Badge>
             )}
-            {discount && (
-              <Badge variant="destructive">
-                -{discount}%
-              </Badge>
-            )}
+            {discount && <Badge variant="destructive">-{discount}%</Badge>}
           </div>
         )}
       </div>
-      <div className="space-y-1 text-center">
+      <div className="space-y-1 text-center mt-auto">
         <Link to={`/product/${id}`}>
-          <h3 className="text-sm font-medium text-gray-900 hover:underline">{name}</h3>
+          <h3 className="text-sm font-medium text-gray-900 hover:underline">
+            {name}
+          </h3>
         </Link>
         <div className="flex justify-center items-center space-x-2">
           {discount ? (

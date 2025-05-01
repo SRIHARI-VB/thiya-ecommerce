@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/carousel";
 import { useIsMobile } from "@/hooks/use-mobile";
 import ProductCard from "../products/ProductCard";
+import { useFavorites } from "@/context/FavoritesContext";
 
 interface FeaturedProductsProps {
   title: string;
@@ -29,6 +30,11 @@ const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
   columns = 4,
 }) => {
   const isMobile = useIsMobile();
+  const { isFavorite, toggleFavorite } = useFavorites();
+
+  const handleToggleFavorite = (productId: string) => {
+    toggleFavorite(productId);
+  };
 
   return (
     <section className="py-12 md:py-16">
@@ -68,7 +74,11 @@ const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
                     key={product.id}
                     className="pl-2 md:pl-4 basis-3/4 sm:basis-1/2 md:basis-1/3 lg:basis-1/4"
                   >
-                    <ProductCard product={product} />
+                    <ProductCard
+                      product={product}
+                      isFavorite={isFavorite(product.id)}
+                      onToggleFavorite={handleToggleFavorite}
+                    />
                   </CarouselItem>
                 ))}
               </CarouselContent>
