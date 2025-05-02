@@ -229,9 +229,9 @@ const Header: React.FC = () => {
       {/* Appointment Dialog */}
       <AppointmentDialog />
 
-      <div className="container px-4 mx-auto flex items-center justify-between h-16">
+      <div className="container px-4 mx-auto flex items-center gap-4 justify-between h-16">
         {/* Logo */}
-        <Link to="/" className="text-2xl font-bold text-boutique-700">
+        <Link to="/" className="text-xl font-bold text-boutique-700">
           Thiya's Boutique
         </Link>
 

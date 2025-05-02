@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import React, { useState, useEffect, useMemo } from "react";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -18,14 +18,18 @@ import { useFavorites } from "@/context/FavoritesContext";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 import ProductGrid from "@/components/products/ProductGrid";
+import ReviewModal from "@/components/products/ReviewModal";
+import ReviewFilters from "@/components/products/ReviewFilters";
+import { Review } from "@/types";
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
   const product = getProductById(id || "");
   const { toast } = useToast();
   const { addToCart } = useCart();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const { isFavorite, toggleFavorite } = useFavorites();
+  const navigate = useNavigate();
   const relatedProducts = getBestSellers().slice(0, 4);
 
   const [selectedImage, setSelectedImage] = useState<string>("");
@@ -33,10 +37,21 @@ const ProductDetail = () => {
   const [selectedSize, setSelectedSize] = useState<string>("");
   const [selectedColor, setSelectedColor] = useState<string>("");
   const [showFullDescription, setShowFullDescription] = useState(false);
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [productReviews, setProductReviews] = useState<Review[]>(
+    product?.reviews || []
+  );
+
+  // Review filtering state
+  const [activeRatingFilter, setActiveRatingFilter] = useState<number | null>(
+    null
+  );
+  const [sortOption, setSortOption] = useState<string>("newest");
 
   useEffect(() => {
     if (product) {
       setSelectedImage(product.images[0]);
+      setProductReviews(product.reviews || []);
 
       // Set default size and color if available
       if (product.sizes && product.sizes.length > 0) {
@@ -51,6 +66,47 @@ const ProductDetail = () => {
     // Scroll to top when product changes
     window.scrollTo(0, 0);
   }, [product]);
+
+  // Calculate rating counts for filters
+  const ratingCounts = useMemo(() => {
+    const counts: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+
+    const reviews = productReviews || [];
+    reviews.forEach((review) => {
+      counts[review.rating] = (counts[review.rating] || 0) + 1;
+    });
+
+    return counts;
+  }, [productReviews]);
+
+  // Filter and sort reviews
+  const filteredAndSortedReviews = useMemo(() => {
+    const reviews = productReviews || [];
+    let filtered = [...reviews];
+
+    // Apply rating filter
+    if (activeRatingFilter !== null) {
+      filtered = filtered.filter(
+        (review) => review.rating === activeRatingFilter
+      );
+    }
+
+    // Apply sorting
+    return filtered.sort((a, b) => {
+      switch (sortOption) {
+        case "newest":
+          return new Date(b.date).getTime() - new Date(a.date).getTime();
+        case "oldest":
+          return new Date(a.date).getTime() - new Date(b.date).getTime();
+        case "highest":
+          return b.rating - a.rating;
+        case "lowest":
+          return a.rating - b.rating;
+        default:
+          return 0;
+      }
+    });
+  }, [productReviews, activeRatingFilter, sortOption]);
 
   if (!product) {
     return (
@@ -126,10 +182,66 @@ const ProductDetail = () => {
     });
   };
 
+  const handleWriteReview = () => {
+    if (!isAuthenticated) {
+      toast({
+        title: "Authentication Required",
+        description: "Please login to write a review",
+        variant: "default",
+      });
+
+      // Redirect to login page after a short delay
+      setTimeout(() => {
+        navigate("/login", { state: { from: `/product/${id}` } });
+      }, 1500);
+
+      return;
+    }
+
+    setReviewModalOpen(true);
+  };
+
+  const handleReviewSubmit = (rating: number, comment: string) => {
+    if (!user) return;
+
+    // Create a new review
+    const newReview: Review = {
+      id: Date.now().toString(),
+      userId: user.id,
+      userName: user.name,
+      rating,
+      comment,
+      date: new Date().toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      }),
+    };
+
+    // Add the new review to the product
+    const updatedReviews = [...productReviews, newReview];
+    setProductReviews(updatedReviews);
+
+    // In a real application, you would send this data to your backend
+    // For now, we're just updating the state
+
+    toast({
+      title: "Review Submitted",
+      description: "Thank you for your feedback!",
+      variant: "default",
+    });
+  };
+
   const truncatedDescription =
     product.description.length > 150
       ? `${product.description.substring(0, 150)}...`
       : product.description;
+
+  // Calculate average rating from reviews
+  const averageRating = productReviews.length
+    ? productReviews.reduce((acc, review) => acc + review.rating, 0) /
+      productReviews.length
+    : product.rating || 0;
 
   return (
     <Layout>
@@ -214,14 +326,14 @@ const ProductDetail = () => {
             </div>
 
             {/* Rating */}
-            {product.rating && (
+            {averageRating > 0 && (
               <div className="mt-2 flex items-center">
                 <div className="flex items-center">
                   {[...Array(5)].map((_, i) => (
                     <Star
                       key={i}
                       className={`h-4 w-4 ${
-                        i < Math.floor(product.rating || 0)
+                        i < Math.floor(averageRating)
                           ? "text-yellow-400 fill-yellow-400"
                           : "text-gray-300"
                       }`}
@@ -229,7 +341,7 @@ const ProductDetail = () => {
                   ))}
                 </div>
                 <span className="ml-2 text-sm text-gray-500">
-                  {product.rating} ({product.reviews?.length || 0} reviews)
+                  {averageRating.toFixed(1)} ({productReviews.length} reviews)
                 </span>
               </div>
             )}
@@ -472,7 +584,7 @@ const ProductDetail = () => {
                           <Star
                             key={i}
                             className={`h-5 w-5 ${
-                              i < Math.floor(product.rating || 0)
+                              i < Math.floor(averageRating)
                                 ? "text-yellow-400 fill-yellow-400"
                                 : "text-gray-300"
                             }`}
@@ -480,51 +592,87 @@ const ProductDetail = () => {
                         ))}
                       </div>
                       <p className="ml-2 text-sm text-gray-600">
-                        Based on {product.reviews?.length || 0} reviews
+                        Based on {productReviews.length} reviews
                       </p>
                     </div>
                   </div>
-                  <Button className="bg-boutique-600 hover:bg-boutique-700">
-                    Write a Review
-                  </Button>
+                  {productReviews.length > 0 && (
+                    <Button
+                      className="bg-boutique-600 hover:bg-boutique-700"
+                      onClick={handleWriteReview}
+                    >
+                      Write a Review
+                    </Button>
+                  )}
                 </div>
 
-                {product.reviews && product.reviews.length > 0 ? (
-                  <div className="space-y-8">
-                    {product.reviews.map((review) => (
-                      <div
-                        key={review.id}
-                        className="border-b border-gray-200 pb-8"
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <h4 className="font-medium">{review.userName}</h4>
-                          <span className="text-sm text-gray-500">
-                            {review.date}
-                          </span>
+                {productReviews && productReviews.length > 0 ? (
+                  <>
+                    {/* Review Filters */}
+                    <ReviewFilters
+                      activeRatingFilter={activeRatingFilter}
+                      setActiveRatingFilter={setActiveRatingFilter}
+                      sortOption={sortOption}
+                      setSortOption={setSortOption}
+                      totalReviews={productReviews.length}
+                      ratingCounts={ratingCounts}
+                    />
+
+                    {/* Reviews List */}
+                    <div className="space-y-4">
+                      {filteredAndSortedReviews.map((review) => (
+                        <div
+                          key={review.id}
+                          className="border-b border-gray-200 pb-4"
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="font-medium">{review.userName}</h4>
+                            <span className="text-sm text-gray-500">
+                              {review.date}
+                            </span>
+                          </div>
+                          <div className="flex items-center mb-2">
+                            {[...Array(5)].map((_, i) => (
+                              <Star
+                                key={i}
+                                className={`h-4 w-4 ${
+                                  i < review.rating
+                                    ? "text-yellow-400 fill-yellow-400"
+                                    : "text-gray-300"
+                                }`}
+                              />
+                            ))}
+                          </div>
+                          <p className="text-gray-700">{review.comment}</p>
                         </div>
-                        <div className="flex items-center mb-2">
-                          {[...Array(5)].map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`h-4 w-4 ${
-                                i < review.rating
-                                  ? "text-yellow-400 fill-yellow-400"
-                                  : "text-gray-300"
-                              }`}
-                            />
-                          ))}
-                        </div>
-                        <p className="text-gray-700">{review.comment}</p>
+                      ))}
+                    </div>
+
+                    {/* No Results Message */}
+                    {filteredAndSortedReviews.length === 0 && (
+                      <div className="text-center py-8">
+                        <p className="text-gray-600 mb-4">
+                          No reviews match your filter
+                        </p>
+                        <Button
+                          variant="outline"
+                          onClick={() => setActiveRatingFilter(null)}
+                        >
+                          Clear Filters
+                        </Button>
                       </div>
-                    ))}
-                  </div>
+                    )}
+                  </>
                 ) : (
                   <div className="text-center py-12">
                     <p className="text-gray-600 mb-4">No reviews yet</p>
                     <p className="text-gray-500 mb-6">
                       Be the first to review this product
                     </p>
-                    <Button className="bg-boutique-600 hover:bg-boutique-700">
+                    <Button
+                      className="bg-boutique-600 hover:bg-boutique-700"
+                      onClick={handleWriteReview}
+                    >
                       Write a Review
                     </Button>
                   </div>
@@ -542,6 +690,14 @@ const ProductDetail = () => {
           <ProductGrid products={relatedProducts} />
         </div>
       </div>
+
+      {/* Review Modal */}
+      <ReviewModal
+        isOpen={reviewModalOpen}
+        onClose={() => setReviewModalOpen(false)}
+        onSubmit={handleReviewSubmit}
+        productName={product.name}
+      />
     </Layout>
   );
 };
