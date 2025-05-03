@@ -8,6 +8,7 @@ interface AuthContextType {
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
   logout: () => void;
   updateUserProfile: (data: { name: string; phone?: string }) => Promise<void>;
 }
@@ -87,6 +88,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       toast({
         title: "Error",
         description: "Failed to log in. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loginWithGoogle = async () => {
+    // Simulate API call
+    setLoading(true);
+
+    try {
+      // Mock authentication delay
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // Mock Google user data
+      const googleUser = {
+        id: "google-" + Date.now().toString(),
+        name: "Google User",
+        email: "google.user@example.com",
+        provider: "google",
+      };
+
+      setUser(googleUser);
+      localStorage.setItem("user", JSON.stringify(googleUser));
+
+      toast({
+        title: "Success",
+        description: "You have been successfully logged in with Google",
+      });
+    } catch (error) {
+      console.error("Google login error", error);
+      toast({
+        title: "Error",
+        description: "Failed to log in with Google. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -176,6 +212,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         loading,
         login,
         register,
+        loginWithGoogle,
         logout,
         updateUserProfile,
       }}
